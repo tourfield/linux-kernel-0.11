@@ -1,19 +1,19 @@
 #
 # if you want the ram-disk device, define this to be the
 # size in blocks.
-#
-RAMDISK = #-DRAMDISK=512
+# #-DRAMDISK=512
+RAMDISK = -DRAMDISK=512
 
 AS86	=as86 -0 -a
 LD86	=ld86 -0
 
 AS	=as --32
-LD	=ld -m elf_i386
+LD	=ld
 # AS	=gas
 # LD	=gld
-LDFLAGS	=-s -x -M
+LDFLAGS	=-m elf_i386 -Ttext 0x0 -e startup_32
 CC	=gcc $(RAMDISK)
-CFLAGS	=-Wall -w -O -fstrength-reduce -fomit-frame-pointer -m32
+CFLAGS	=-Wall -w -O -fstrength-reduce -fomit-frame-pointer -m32 -fleading-underscore -fno-stack-protector
 #\
 #  
 CPP	=cpp -nostdinc -Iinclude
@@ -23,8 +23,8 @@ CPP	=cpp -nostdinc -Iinclude
 # This can be either FLOPPY, /dev/xxxx or empty, in which case the
 # default of /dev/hd6 is used by 'build'.
 #
-ROOT_DEV=/dev/hd6
-
+# ROOT_DEV=/dev/hd6
+ROOT_DEV=FLOPPY
 ARCHIVES=kernel/kernel.o mm/mm.o fs/fs.o
 DRIVERS =kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a
 MATH	=kernel/math/math.a
@@ -41,15 +41,21 @@ LIBS	=lib/lib.a
 
 all:	Image
 
+#Image: boot/bootsect boot/setup tools/system tools/build
+#	tools/build boot/bootsect boot/setup tools/system $(ROOT_DEV) > Image
+#	sync
 Image: boot/bootsect boot/setup tools/system tools/build
-	tools/build boot/bootsect boot/setup tools/system $(ROOT_DEV) > Image
+	objcopy -O binary -R .note -R .comment tools/system tools/kernel
+	tools/build boot/bootsect boot/setup tools/kernel $(ROOT_DEV) > Image
+	rm tools/kernel -f
 	sync
 
 disk: Image
 	dd bs=8192 if=Image of=/dev/PS0
+## $(CC) $(CFLAGS) \
 
 tools/build: tools/build.c
-	$(CC) $(CFLAGS) \
+	$(CC) -w -O -fno-stack-protector -m32 -fstrength-reduce -fomit-frame-pointer \
 	-o tools/build tools/build.c
 
 boot/head.o: boot/head.s
@@ -62,6 +68,9 @@ tools/system:	boot/head.o init/main.o \
 	$(MATH) \
 	$(LIBS) \
 	-o tools/system > System.map
+	objcopy --only-keep-debug tools/system tools/system.dbg
+	objcopy --add-gnu-debuglink=tools/system.dbg tools/system
+	objcopy -g tools/system
 
 kernel/math/math.a:
 	(cd kernel/math; make)

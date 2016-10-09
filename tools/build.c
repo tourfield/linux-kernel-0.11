@@ -32,6 +32,9 @@
 #define MINIX_HEADER 32
 #define GCC_HEADER 1024
 
+#define MAJOR(x) (((unsigned)(x))>>8)                                                                                                           
+#define MINOR(x) ((x)&0xff)
+
 #define SYS_SIZE 0x2000
 
 #define DEFAULT_MAJOR_ROOT 3
@@ -155,8 +158,8 @@ int main(int argc, char ** argv)
 		die("Unable to open 'system'");
 	if (read(id,buf,GCC_HEADER) != GCC_HEADER)
 		die("Unable to read header of 'system'");
-	if (((long *) buf)[5] != 0)
-		die("Non-GCC header of 'system'");
+	//if (((long *) buf)[5] != 0)
+	//	die("Non-GCC header of 'system'");
 	for (i=0 ; (c=read(id,buf,sizeof buf))>0 ; i+=c )
 		if (write(1,buf,c)!=c)
 			die("Write call failed");

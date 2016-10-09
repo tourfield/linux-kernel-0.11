@@ -1,8 +1,8 @@
-AR	=gar
+AR	=ar
 AS	=as --32
 CC	=gcc
 LD	=ld -m elf_i386
-CFLAGS	=-Wall -w -m32 -O -fstrength-reduce  -fomit-frame-pointer \
+CFLAGS	=-Wall -w -g -m32 -O -fstrength-reduce  -fomit-frame-pointer -fleading-underscore -fno-stack-protector \
 	 -nostdinc -I../include
 CPP	=gcc -E -nostdinc -I../include
 

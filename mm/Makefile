@@ -1,8 +1,8 @@
 CC	=gcc
-CFLAGS	=-O -m32 -Wall -fstrength-reduce  -fomit-frame-pointer \
+CFLAGS	=-O -g -m32 -Wall -fstrength-reduce  -fomit-frame-pointer -fleading-underscore -fno-stack-protector \
 	-finline-functions -nostdinc -I../include
 AS	=as --32
-AR	=gar
+AR	=ar
 LD	=ld -m elf_i386
 CPP	=gcc -E -nostdinc -I../include
 
